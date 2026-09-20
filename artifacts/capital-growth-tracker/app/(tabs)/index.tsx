@@ -28,6 +28,21 @@ import {
 type Range = '7D' | '30D' | 'Monthly' | 'Until Dec';
 const screenWidth = Dimensions.get('window').width;
 
+function formatAxisValue(value: number) {
+  const absoluteValue = Math.abs(value);
+  const sign = value < 0 ? '-' : '';
+  const compact = (divisor: number, suffix: string) => {
+    const amount = absoluteValue / divisor;
+    const decimals = amount >= 100 ? 0 : 1;
+    return `SAR ${sign}${amount.toFixed(decimals).replace(/\.0$/, '')}${suffix}`;
+  };
+
+  if (absoluteValue >= 1_000_000_000) return compact(1_000_000_000, 'B');
+  if (absoluteValue >= 1_000_000) return compact(1_000_000, 'M');
+  if (absoluteValue >= 1_000) return compact(1_000, 'K');
+  return `SAR ${value.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+}
+
 function StatChip({ icon, label, value, onPress }: { icon: keyof typeof Feather.glyphMap; label: string; value: string; onPress?: () => void }) {
   const colors = useColors();
   return (
@@ -65,7 +80,7 @@ function Chart({ entries, onSelect, selectedDate }: { entries: DailyEntry[]; onS
       <View style={styles.chartRow}>
         <View style={styles.yAxisLabels}>
           {yAxisValues.map((value, index) => (
-            <Text key={index} style={[styles.yAxisLabel, { color: colors.mutedForeground }]}>{formatMoney(value)}</Text>
+            <Text key={index} style={[styles.yAxisLabel, { color: colors.mutedForeground }]}>{formatAxisValue(value)}</Text>
           ))}
         </View>
         <View style={styles.chartArea} onLayout={(event) => setWidth(event.nativeEvent.layout.width)}>
