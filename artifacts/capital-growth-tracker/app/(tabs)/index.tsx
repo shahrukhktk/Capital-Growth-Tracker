@@ -31,13 +31,17 @@ import {
 type Range = '7D' | '30D' | 'Monthly' | 'Until Dec';
 const screenWidth = Dimensions.get('window').width;
 
-function StatChip({ icon, label, value }: { icon: keyof typeof Feather.glyphMap; label: string; value: string }) {
+function StatChip({ icon, label, value, onPress }: { icon: keyof typeof Feather.glyphMap; label: string; value: string; onPress?: () => void }) {
   const colors = useColors();
   return (
-    <View style={[styles.statChip, { backgroundColor: colors.card, borderColor: colors.border }]}>
+    <Pressable
+      onPress={onPress}
+      accessibilityRole={onPress ? 'button' : undefined}
+      style={({ pressed }) => [styles.statChip, { backgroundColor: colors.card, borderColor: colors.border, opacity: pressed && onPress ? 0.72 : 1 }]}
+    >
       <View style={[styles.statIcon, { backgroundColor: colors.secondary }]}><Feather name={icon} size={14} color={colors.accentForeground} /></View>
       <View><Text style={[styles.statLabel, { color: colors.mutedForeground }]}>{label}</Text><Text style={[styles.statValue, { color: colors.foreground }]}>{value}</Text></View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -221,12 +225,24 @@ export default function DashboardScreen() {
         <Text style={styles.heroNumber}>{formatMoney(snapshot.currentCapital)}</Text>
         <View style={styles.heroBottom}><View><Text style={styles.heroMetaLabel}>Total profit</Text><Text style={styles.heroMetaValue}>{formatMoney(snapshot.totalProfit, true)}</Text></View><View style={styles.heroDivider} /><View><Text style={styles.heroMetaLabel}>Growth</Text><Text style={styles.heroMetaValue}>+{snapshot.growthPct.toFixed(2)}%</Text></View><View style={styles.heroChartMark}><Feather name="trending-up" size={26} color={colors.primary} /></View></View>
       </View>
-      <View style={styles.statsRow}><StatChip icon="check-circle" label="Targets achieved" value={`${snapshot.achievedCount} / ${snapshot.records.length}`} /><StatChip icon="zap" label="Current streak" value={`${snapshot.currentStreak} days`} /></View>
+      <View style={styles.statsRow}><StatChip icon="check-circle" label="Targets achieved" value={`${snapshot.achievedCount} / ${snapshot.records.length}`} onPress={() => router.push(`/plan?month=${snapshot.latestActualDate.slice(0, 7)}`)} /><StatChip icon="zap" label="Current streak" value={`${snapshot.currentStreak} days`} onPress={() => router.push('/plan')} /></View>
       <View style={styles.sectionHeader}><View><Text style={[styles.sectionEyebrow, { color: colors.mutedForeground }]}>NEXT TARGET</Text><Text style={[styles.sectionTitle, { color: colors.foreground }]}>{formatLongDate(snapshot.nextTargetDate)}</Text></View><View style={[styles.percentBadge, { backgroundColor: colors.accent }]}><Text style={[styles.percentBadgeText, { color: colors.accentForeground }]}>{snapshot.settings.dailyTargetPct}%</Text></View></View>
       <View style={[styles.targetCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <View style={styles.targetMain}><View style={[styles.targetIcon, { backgroundColor: colors.secondary }]}><Feather name="arrow-up-right" size={20} color={colors.accentForeground} /></View><View><Text style={[styles.targetLabel, { color: colors.mutedForeground }]}>Target profit</Text><Text style={[styles.targetAmount, { color: colors.foreground }]}>{formatMoney(snapshot.nextTargetProfit, true)}</Text></View></View>
         <View style={styles.targetBalanceBlock}><Text style={[styles.targetLabel, { color: colors.mutedForeground }]}>Target balance</Text><Text style={[styles.targetBalance, { color: colors.foreground }]}>{formatMoney(snapshot.nextTargetBalance)}</Text></View>
         <Pressable onPress={() => { setActiveEntry(nextEntry); setShowEntry(true); }} style={({ pressed }) => [styles.targetButton, { backgroundColor: colors.navy, opacity: pressed ? 0.85 : 1 }]}><Text style={styles.targetButtonText}>ENTER ACTUAL RESULT</Text><Feather name="plus" size={17} color={colors.white} /></Pressable>
+      </View>
+      <View style={styles.quickActions}>
+        <Pressable accessibilityRole="button" onPress={() => router.push(`/plan?month=${snapshot.nextTargetDate.slice(0, 7)}`)} style={({ pressed }) => [styles.quickAction, { backgroundColor: colors.card, borderColor: colors.border, opacity: pressed ? 0.76 : 1 }]}>
+          <View style={[styles.quickActionIcon, { backgroundColor: colors.secondary }]}><Feather name="calendar" size={16} color={colors.accentForeground} /></View>
+          <View style={styles.quickActionCopy}><Text style={[styles.quickActionTitle, { color: colors.foreground }]}>View this month</Text><Text style={[styles.quickActionSubtitle, { color: colors.mutedForeground }]}>Plan and history</Text></View>
+          <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
+        </Pressable>
+        <Pressable accessibilityRole="button" onPress={() => router.push('/settings')} style={({ pressed }) => [styles.quickAction, { backgroundColor: colors.card, borderColor: colors.border, opacity: pressed ? 0.76 : 1 }]}>
+          <View style={[styles.quickActionIcon, { backgroundColor: colors.secondary }]}><Feather name="sliders" size={16} color={colors.accentForeground} /></View>
+          <View style={styles.quickActionCopy}><Text style={[styles.quickActionTitle, { color: colors.foreground }]}>Adjust tracking</Text><Text style={[styles.quickActionSubtitle, { color: colors.mutedForeground }]}>Target and days</Text></View>
+          <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
+        </Pressable>
       </View>
       {monthlyPlanSection}
       <View style={[styles.chartCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -235,13 +251,14 @@ export default function DashboardScreen() {
         <Chart entries={chartEntries} selectedDate={selectedDate} onSelect={(entry) => setSelectedDate(entry.date)} />
         {selectedEntry ? <View style={[styles.tooltip, { backgroundColor: colors.secondary }]}><View><Text style={[styles.tooltipDate, { color: colors.foreground }]}>{formatLongDate(selectedEntry.date)}</Text><Text style={[styles.tooltipLabel, { color: colors.mutedForeground }]}>{selectedEntry.actualBalance === undefined ? 'Projected target' : 'Actual result recorded'}</Text></View><View style={styles.tooltipValues}><Text style={[styles.tooltipValue, { color: colors.accentForeground }]}>{formatMoney(selectedEntry.targetBalance)}</Text>{selectedEntry.actualBalance !== undefined ? <Text style={[styles.tooltipActual, { color: colors.primary }]}>{formatMoney(selectedEntry.actualBalance)}</Text> : null}</View></View> : null}
       </View>
-      <View style={[styles.projectionCard, { backgroundColor: colors.navySoft }]}>
+      <Pressable accessibilityRole="button" accessibilityLabel="Open December growth projection" onPress={() => router.push('/plan?month=2026-12')} style={({ pressed }) => [styles.projectionCard, { backgroundColor: colors.navySoft, opacity: pressed ? 0.86 : 1 }]}>
         <View style={styles.projectionHeading}><View><Text style={styles.heroLabel}>YOUR GROWTH PROJECTION</Text><Text style={styles.projectionTitle}>Through 31 December 2026</Text></View><Feather name="bar-chart-2" size={22} color={colors.gold} /></View>
         <View style={styles.projectionGrid}><View style={styles.projectionCell}><Text style={styles.projectionLabel}>Current</Text><Text style={styles.projectionValue}>{formatMoney(snapshot.currentCapital)}</Text></View><View style={styles.projectionCell}><Text style={styles.projectionLabel}>Projected target</Text><Text style={styles.projectionValue}>{formatMoney(snapshot.projectedDecemberTarget)}</Text></View><View style={styles.projectionCell}><Text style={styles.projectionLabel}>Remaining target days</Text><Text style={styles.projectionValue}>{snapshot.remainingTradingDays}</Text></View><View style={styles.projectionCell}><Text style={styles.projectionLabel}>Daily target</Text><Text style={styles.projectionValue}>{snapshot.settings.dailyTargetPct}%</Text></View></View>
+        <View style={styles.projectionFooter}><Text style={styles.projectionLink}>Open December plan</Text><Feather name="arrow-up-right" size={15} color={colors.gold} /></View>
         <Text style={styles.disclaimer}>Projection assumes the selected daily target is achieved on every active tracking day. It is not a prediction or guaranteed investment return.</Text>
-      </View>
+      </Pressable>
       <View style={styles.sectionHeader}><View><Text style={[styles.sectionEyebrow, { color: colors.mutedForeground }]}>RECENT ACTIVITY</Text><Text style={[styles.sectionTitle, { color: colors.foreground }]}>Daily records</Text></View><Pressable onPress={() => router.push('/plan?month=2026-09')}><Text style={[styles.linkText, { color: colors.accentForeground }]}>History</Text></Pressable></View>
-      <View style={[styles.activityCard, { backgroundColor: colors.card, borderColor: colors.border }]}>{snapshot.records.slice(-3).reverse().map((record) => <View key={record.id} style={styles.activityRow}><View style={[styles.activityIcon, { backgroundColor: colors.accent }]}><Feather name="check" size={14} color={colors.accentForeground} /></View><View style={styles.activityCopy}><Text style={[styles.activityDate, { color: colors.foreground }]}>{formatShortDate(record.date)}</Text><Text style={[styles.activityStatus, { color: colors.mutedForeground }]}>Target achieved · closing {formatMoney(record.closingBalance ?? 0)}</Text></View><Text style={[styles.activityProfit, { color: colors.primary }]}>{formatMoney(record.actualProfit, true)}</Text></View>)}{snapshot.records.length === 0 ? <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>No actual results recorded yet.</Text> : null}</View>
+      <View style={[styles.activityCard, { backgroundColor: colors.card, borderColor: colors.border }]}>{snapshot.records.slice(-3).reverse().map((record) => <Pressable key={record.id} accessibilityRole="button" accessibilityLabel={`Open ${formatShortDate(record.date)} activity`} onPress={() => router.push(`/plan?month=${record.date.slice(0, 7)}`)} style={({ pressed }) => [styles.activityRow, { opacity: pressed ? 0.68 : 1 }]}><View style={[styles.activityIcon, { backgroundColor: colors.accent }]}><Feather name="check" size={14} color={colors.accentForeground} /></View><View style={styles.activityCopy}><Text style={[styles.activityDate, { color: colors.foreground }]}>{formatShortDate(record.date)}</Text><Text style={[styles.activityStatus, { color: colors.mutedForeground }]}>Target achieved · closing {formatMoney(record.closingBalance ?? 0)}</Text></View><Text style={[styles.activityProfit, { color: colors.primary }]}>{formatMoney(record.actualProfit, true)}</Text><Feather name="chevron-right" size={15} color={colors.mutedForeground} /></Pressable>)}{snapshot.records.length === 0 ? <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>No actual results recorded yet.</Text> : null}</View>
       <ActualEntryModal visible={showEntry} onClose={() => setShowEntry(false)} date={activeEntry?.date ?? snapshot.nextTargetDate} targetProfit={activeEntry?.targetProfit ?? snapshot.nextTargetProfit} onSave={onSaveActual} />
     </ScrollView>
   );
@@ -275,6 +292,12 @@ const styles = StyleSheet.create({
   statIcon: { width: 30, height: 30, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   statLabel: { fontSize: 10, marginBottom: 3 },
   statValue: { fontSize: 13, fontWeight: '700' },
+  quickActions: { flexDirection: 'row', gap: 10 },
+  quickAction: { flex: 1, minHeight: 58, borderRadius: 14, borderWidth: 1, padding: 10, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  quickActionIcon: { width: 30, height: 30, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  quickActionCopy: { flex: 1 },
+  quickActionTitle: { fontSize: 11, fontWeight: '700' },
+  quickActionSubtitle: { fontSize: 9, marginTop: 3 },
   sectionHeader: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 4 },
   sectionEyebrow: { fontSize: 10, letterSpacing: 1.3, fontWeight: '700' },
   sectionTitle: { fontSize: 19, fontWeight: '700', letterSpacing: -0.3, marginTop: 4 },
@@ -315,6 +338,8 @@ const styles = StyleSheet.create({
   projectionCell: { width: '50%' },
   projectionLabel: { color: '#9BB8AE', fontSize: 10, marginBottom: 4 },
   projectionValue: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
+  projectionFooter: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  projectionLink: { color: '#F3CC67', fontSize: 11, fontWeight: '700' },
   disclaimer: { color: '#9BB8AE', fontSize: 10, lineHeight: 15 },
   linkText: { fontSize: 12, fontWeight: '700' },
   monthScroll: { gap: 11 },
