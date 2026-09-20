@@ -44,13 +44,14 @@ function StatChip({ icon, label, value, onPress }: { icon: keyof typeof Feather.
 
 function Chart({ entries, onSelect, selectedDate }: { entries: DailyEntry[]; onSelect: (entry: DailyEntry) => void; selectedDate?: string }) {
   const colors = useColors();
-  const [width, setWidth] = useState(screenWidth - 56);
+  const [width, setWidth] = useState(screenWidth - 56 - 78);
   const height = 190;
   const actuals = entries.flatMap((entry) => (entry.actualBalance ? [entry.actualBalance] : []));
   const values = [...entries.map((entry) => entry.targetBalance), ...actuals];
   const max = Math.max(...values, 1);
   const min = Math.min(...values, max);
   const range = Math.max(max - min, 1);
+  const yAxisValues = [0, 1, 2, 3].map((step) => max - (range * step) / 3);
   const x = (index: number) => (entries.length > 1 ? (index / (entries.length - 1)) * (width - 16) + 8 : width / 2);
   const y = (value: number) => height - 20 - ((value - min) / range) * (height - 38);
   const pathFor = (items: Array<{ index: number; value: number }>) => items.map((point, index) => `${index === 0 ? 'M' : 'L'} ${x(point.index)} ${y(point.value)}`).join(' ');
@@ -60,22 +61,31 @@ function Chart({ entries, onSelect, selectedDate }: { entries: DailyEntry[]; onS
   const labelIndexes = entries.length > 1 ? [0, Math.floor((entries.length - 1) / 2), entries.length - 1] : [0];
 
   return (
-    <View style={styles.chartWrap} onLayout={(event) => setWidth(event.nativeEvent.layout.width)}>
-      <Svg width={width} height={height}>
-        {[0, 1, 2, 3].map((line) => {
-          const lineY = 14 + (line / 3) * (height - 38);
-          return <Line key={line} x1="0" x2={width} y1={lineY} y2={lineY} stroke={colors.border} strokeWidth="1" />;
-        })}
-        <Path d={targetPath} fill="none" stroke={colors.gold} strokeWidth="3" strokeLinecap="round" />
-        {actualPath ? <Path d={actualPath} fill="none" stroke={colors.primary} strokeWidth="3" strokeLinecap="round" /> : null}
-        {entries.map((entry, index) => (
-          <Circle key={entry.date} cx={x(index)} cy={y(entry.targetBalance)} r={selectedDate === entry.date ? 6 : 4} fill={colors.card} stroke={colors.gold} strokeWidth="2" onPress={() => onSelect(entry)} />
-        ))}
-        {entries.map((entry, index) => entry.actualBalance === undefined ? null : (
-          <Circle key={`actual-${entry.date}`} cx={x(index)} cy={y(entry.actualBalance)} r={selectedDate === entry.date ? 6 : 4} fill={colors.primary} stroke={colors.card} strokeWidth="2" onPress={() => onSelect(entry)} />
-        ))}
-      </Svg>
-      <View style={styles.chartLabels}>{labelIndexes.map((index) => <Text key={entries[index].date} style={[styles.chartLabel, { color: colors.mutedForeground }]}>{formatShortDate(entries[index].date)}</Text>)}</View>
+    <View style={styles.chartWrap}>
+      <View style={styles.chartRow}>
+        <View style={styles.yAxisLabels}>
+          {yAxisValues.map((value, index) => (
+            <Text key={index} style={[styles.yAxisLabel, { color: colors.mutedForeground }]}>{formatMoney(value)}</Text>
+          ))}
+        </View>
+        <View style={styles.chartArea} onLayout={(event) => setWidth(event.nativeEvent.layout.width)}>
+          <Svg width={width} height={height}>
+            {[0, 1, 2, 3].map((line) => {
+              const lineY = 14 + (line / 3) * (height - 38);
+              return <Line key={line} x1="0" x2={width} y1={lineY} y2={lineY} stroke={colors.border} strokeWidth="1" />;
+            })}
+            <Path d={targetPath} fill="none" stroke={colors.gold} strokeWidth="3" strokeLinecap="round" />
+            {actualPath ? <Path d={actualPath} fill="none" stroke={colors.primary} strokeWidth="3" strokeLinecap="round" /> : null}
+            {entries.map((entry, index) => (
+              <Circle key={entry.date} cx={x(index)} cy={y(entry.targetBalance)} r={selectedDate === entry.date ? 6 : 4} fill={colors.card} stroke={colors.gold} strokeWidth="2" onPress={() => onSelect(entry)} />
+            ))}
+            {entries.map((entry, index) => entry.actualBalance === undefined ? null : (
+              <Circle key={`actual-${entry.date}`} cx={x(index)} cy={y(entry.actualBalance)} r={selectedDate === entry.date ? 6 : 4} fill={colors.primary} stroke={colors.card} strokeWidth="2" onPress={() => onSelect(entry)} />
+            ))}
+          </Svg>
+          <View style={styles.chartLabels}>{labelIndexes.map((index) => <Text key={entries[index].date} style={[styles.chartLabel, { color: colors.mutedForeground }]}>{formatShortDate(entries[index].date)}</Text>)}</View>
+        </View>
+      </View>
     </View>
   );
 }
@@ -221,8 +231,8 @@ const styles = StyleSheet.create({
   container: { paddingHorizontal: 20, gap: 16 },
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 46 },
   brandCluster: { flexDirection: 'row', alignItems: 'center', gap: 11 },
-  logoFrame: { width: 43, height: 43, borderRadius: 22, borderWidth: 1, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  logoImage: { width: 41, height: 41, borderRadius: 21 },
+  logoFrame: { width: 43, height: 43, borderRadius: 20, borderWidth: 1, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  logoImage: { width: 41, height: 41, borderRadius: 20 },
   appName: { fontSize: 17, fontWeight: '700', letterSpacing: -0.2, marginBottom: 3 },
   eyebrow: { fontSize: 10, letterSpacing: 1.6, fontWeight: '700' },
   greeting: { fontSize: 11, fontWeight: '500', letterSpacing: 0.1 },
@@ -279,6 +289,10 @@ const styles = StyleSheet.create({
   filter: { borderRadius: 9, paddingHorizontal: 11, paddingVertical: 8 },
   filterText: { fontSize: 11, fontWeight: '700' },
   chartWrap: { height: 224, justifyContent: 'flex-start' },
+  chartRow: { flexDirection: 'row', alignItems: 'flex-start' },
+  yAxisLabels: { width: 78, height: 190, justifyContent: 'space-between', paddingTop: 8, paddingBottom: 17, paddingRight: 8 },
+  yAxisLabel: { fontSize: 9, textAlign: 'right' },
+  chartArea: { flex: 1 },
   chartLabels: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 2 },
   chartLabel: { fontSize: 10 },
   tooltip: { borderRadius: 13, padding: 11, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
