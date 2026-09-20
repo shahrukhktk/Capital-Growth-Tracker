@@ -3,10 +3,8 @@ import { router } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Dimensions,
   Image,
-  Linking,
   Modal,
   Pressable,
   ScrollView,
@@ -15,7 +13,6 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
 import Svg, { Circle, Line, Path } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/useColors';
@@ -119,13 +116,12 @@ function ActualEntryModal({ visible, onClose, date, targetProfit, onSave }: { vi
 export default function DashboardScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { snapshot, hydrated, addRecord, profileUri, setProfileUri } = useTracker();
+  const { snapshot, hydrated, addRecord } = useTracker();
   const [range, setRange] = useState<Range>('30D');
   const [insightView, setInsightView] = useState<'performance' | 'projection'>('performance');
   const [selectedDate, setSelectedDate] = useState(snapshot.latestActualDate);
   const [showEntry, setShowEntry] = useState(false);
   const [activeEntry, setActiveEntry] = useState(snapshot.dailyEntries.find((entry) => entry.date === snapshot.nextTargetDate));
-  const [isPickingProfile, setIsPickingProfile] = useState(false);
   const chartEntries = useMemo(() => {
     const all = snapshot.dailyEntries;
     if (range === 'Until Dec') return all;
@@ -146,75 +142,15 @@ export default function DashboardScreen() {
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.monthScroll}>{snapshot.monthly.map((month) => <Pressable key={month.key} onPress={() => router.push(`/plan?month=${month.key}`)} style={({ pressed }) => [styles.monthCard, { backgroundColor: colors.card, borderColor: colors.border, opacity: pressed ? 0.78 : 1 }]}><Text style={[styles.monthName, { color: colors.foreground }]}>{month.label.split(' ')[0].toUpperCase()}</Text><Text style={[styles.monthCapital, { color: colors.foreground }]}>{formatMoney(month.currentCapital ?? (month.isUpcoming ? month.targetClosingBalance : month.projectedMonthEndBalance))}</Text><Text style={[styles.monthCaption, { color: colors.mutedForeground }]}>{month.isUpcoming ? 'Projected close' : 'Current / projected close'}</Text><View style={styles.progressRow}><View style={[styles.progressTrack, { backgroundColor: colors.muted }]}><View style={[styles.progressFill, { backgroundColor: colors.primary, width: `${Math.min(100, month.progress)}%` }]} /></View><Text style={[styles.progressText, { color: colors.mutedForeground }]}>{Math.round(month.progress)}%</Text></View><Text style={[styles.monthMeta, { color: colors.mutedForeground }]}>{month.completedDays} / {month.trackingDays} days completed</Text></Pressable>)}</ScrollView>
     </>
   );
-  const openProfilePicker = async () => {
-    if (isPickingProfile) return;
-    setIsPickingProfile(true);
-    try {
-      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!permission.granted) {
-        if (!permission.canAskAgain) {
-          Alert.alert('Photos access is off', 'Enable photo access in Settings to choose a profile picture.', [
-            { text: 'Not now', style: 'cancel' },
-            { text: 'Open Settings', onPress: () => Linking.openSettings().catch(() => undefined) },
-          ]);
-        } else {
-          Alert.alert('Photos access needed', 'Allow photo access to set a profile picture.');
-        }
-        return;
-      }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: 'images',
-        allowsEditing: true,
-        aspect: [1, 1],
-        shape: 'oval',
-        quality: 0.85,
-        exif: false,
-      });
-      if (!result.canceled && result.assets[0]?.uri) {
-        setProfileUri(result.assets[0].uri);
-      }
-    } catch {
-      Alert.alert('Could not update picture', 'Please try selecting the photo again.');
-    } finally {
-      setIsPickingProfile(false);
-    }
-  };
-  const chooseProfileImage = () => {
-    if (!profileUri) {
-      void openProfilePicker();
-      return;
-    }
-
-    Alert.alert('Profile picture', 'Choose a new photo and adjust the crop, or remove the current picture.', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Remove picture', style: 'destructive', onPress: () => setProfileUri(null) },
-      { text: 'Change picture', onPress: () => void openProfilePicker() },
-    ]);
-  };
-
   if (!hydrated) return <View style={[styles.loading, { backgroundColor: colors.background }]}><ActivityIndicator color={colors.primary} /></View>;
 
   return (
     <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={[styles.container, { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 96 }]} showsVerticalScrollIndicator={false}>
       <View style={styles.topBar}>
         <View style={styles.brandCluster}>
-          <Pressable
-            onPress={chooseProfileImage}
-            accessibilityLabel="Choose profile picture"
-            style={({ pressed }) => [styles.avatarButton, { backgroundColor: colors.secondary, borderColor: colors.border, opacity: pressed ? 0.72 : 1 }]}
-          >
-            {isPickingProfile ? (
-              <ActivityIndicator color={colors.accentForeground} />
-            ) : profileUri ? (
-              <Image source={{ uri: profileUri }} style={styles.avatarImage} />
-            ) : (
-              <Feather name="user" size={19} color={colors.accentForeground} />
-            )}
-            <View style={[styles.avatarBadge, { backgroundColor: colors.primary, borderColor: colors.background }]}>
-              <Feather name="plus" size={9} color={colors.primaryForeground} />
-            </View>
-          </Pressable>
+          <View accessibilityLabel="InvesGrow app logo" style={[styles.logoFrame, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
+            <Image source={require('../../assets/images/icon.png')} style={styles.logoImage} />
+          </View>
           <View>
             <Text style={[styles.appName, { color: colors.foreground }]}>InvesGrow</Text>
             <Text style={[styles.greeting, { color: colors.mutedForeground }]}>Your trajectory</Text>
@@ -285,9 +221,8 @@ const styles = StyleSheet.create({
   container: { paddingHorizontal: 20, gap: 16 },
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 46 },
   brandCluster: { flexDirection: 'row', alignItems: 'center', gap: 11 },
-  avatarButton: { width: 43, height: 43, borderRadius: 22, borderWidth: 1, alignItems: 'center', justifyContent: 'center', position: 'relative' },
-  avatarImage: { width: 41, height: 41, borderRadius: 21 },
-  avatarBadge: { position: 'absolute', right: -2, bottom: -1, width: 16, height: 16, borderRadius: 8, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  logoFrame: { width: 43, height: 43, borderRadius: 22, borderWidth: 1, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  logoImage: { width: 41, height: 41, borderRadius: 21 },
   appName: { fontSize: 17, fontWeight: '700', letterSpacing: -0.2, marginBottom: 3 },
   eyebrow: { fontSize: 10, letterSpacing: 1.6, fontWeight: '700' },
   greeting: { fontSize: 11, fontWeight: '500', letterSpacing: 0.1 },
