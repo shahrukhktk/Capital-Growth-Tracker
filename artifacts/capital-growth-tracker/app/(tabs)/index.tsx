@@ -173,11 +173,11 @@ export default function DashboardScreen() {
     <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={[styles.container, { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 96 }]} showsVerticalScrollIndicator={false}>
       <View style={styles.topBar}>
         <View style={styles.brandCluster}>
-          <View accessibilityLabel="InvesGrow app logo" style={[styles.logoFrame, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
+          <View accessibilityLabel="CapGrow app logo" style={[styles.logoFrame, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
             <Image source={require('../../assets/images/icon.png')} style={styles.logoImage} />
           </View>
           <View>
-            <Text style={[styles.appName, { color: colors.foreground }]}>InvesGrow</Text>
+            <Text style={[styles.appName, { color: colors.foreground }]}>CapGrow</Text>
             <Text style={[styles.greeting, { color: colors.mutedForeground }]}>Your trajectory</Text>
           </View>
         </View>
