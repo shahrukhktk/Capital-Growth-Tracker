@@ -67,7 +67,7 @@ function Chart({ entries, onSelect, selectedDate }: { entries: DailyEntry[]; onS
   const min = Math.min(...values, max);
   const range = Math.max(max - min, 1);
   const yAxisValues = [0, 1, 2, 3].map((step) => max - (range * step) / 3);
-  const x = (index: number) => (entries.length > 1 ? (index / (entries.length - 1)) * (width - 16) + 8 : width / 2);
+  const x = (index: number) => (entries.length > 1 ? (index / (entries.length - 1)) * width : width / 2);
   const y = (value: number) => height - 20 - ((value - min) / range) * (height - 38);
   const pathFor = (items: Array<{ index: number; value: number }>) => items.map((point, index) => `${index === 0 ? 'M' : 'L'} ${x(point.index)} ${y(point.value)}`).join(' ');
   const targetPath = pathFor(entries.map((entry, index) => ({ index, value: entry.targetBalance })));
