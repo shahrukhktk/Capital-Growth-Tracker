@@ -1,0 +1,24 @@
+kind = "mobile"
+previewPath = "/capital-growth-tracker/"
+title = "Capital Growth Tracker"
+description = "A native mobile tracker for compounding capital targets, actual daily performance, growth projections, and monthly analytics through December 2026."
+version = "1.0.0"
+id = "artifacts/capital-growth-tracker"
+router = "expo-domain"
+
+[[services]]
+name = "expo"
+ensurePreviewReachable = "/status"
+paths = [ "/capital-growth-tracker/" ]
+localPort = 24080
+
+[services.development]
+run = "pnpm --filter @workspace/capital-growth-tracker run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/capital-growth-tracker", "run", "build" ]
+run = [ "pnpm", "--filter", "@workspace/capital-growth-tracker", "run", "serve" ]
+
+[services.env]
+PORT = "24080"
+BASE_PATH = "/capital-growth-tracker/"

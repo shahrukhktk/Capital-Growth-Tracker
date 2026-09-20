@@ -1,0 +1,796 @@
+ADDITIONAL REQUIREMENTS — START DATE, PERFORMANCE GRAPH & MONTHLY TARGETS
+
+Extend the existing Capital Growth Tracker with the following functionality.
+
+All existing requirements and calculation rules remain unchanged.
+
+⸻
+
+33. INITIAL TRACKING DATE
+
+The investment officially started on:
+
+19 September 2026
+
+Initial Capital:
+
+SAR 5,000.00
+
+Daily Target:
+
+5%
+
+The user has already completed the first TWO daily targets.
+
+Initialize the application with these records:
+
+19 September 2026
+
+Starting Capital:
+SAR 5,000.00
+
+Daily Target:
+5%
+
+Target Profit:
+SAR 250.00
+
+Actual Profit:
+SAR 250.00
+
+Status:
+Achieved
+
+Closing Balance:
+SAR 5,250.00
+
+⸻
+
+20 September 2026
+
+Starting Capital:
+SAR 5,250.00
+
+Daily Target:
+5%
+
+Target Profit:
+SAR 262.50
+
+Actual Profit:
+SAR 262.50
+
+Status:
+Achieved
+
+Closing Balance:
+SAR 5,512.50
+
+⸻
+
+Therefore after completing 20 September:
+
+CURRENT CAPITAL:
+
+SAR 5,512.50
+
+TOTAL PROFIT:
+
+SAR 512.50
+
+TOTAL GROWTH:
+
+10.25%
+
+TARGETS ACHIEVED:
+
+2 / 2
+
+CURRENT STREAK:
+
+2 Days
+
+⸻
+
+34. NEXT TARGET
+
+The next available target should automatically be calculated from the current actual balance.
+
+Starting Capital:
+
+SAR 5,512.50
+
+Target:
+
+5%
+
+Target Profit:
+
+SAR 275.63
+
+Target Closing Balance:
+
+SAR 5,788.13
+
+Do NOT manually hardcode future targets.
+
+All future values must be dynamically calculated from the latest actual closing balance.
+
+⸻
+
+35. PERFORMANCE OVERVIEW GRAPH
+
+Add a major section to Dashboard called:
+
+PERFORMANCE OVERVIEW
+
+Create a clean interactive line chart comparing:
+
+1. Target Growth
+2. Actual Growth
+
+The X-axis represents dates.
+
+The Y-axis represents capital in SAR.
+
+Example:
+
+19 Sep
+20 Sep
+21 Sep
+22 Sep
+…
+31 Dec
+
+Target Growth Line
+
+Calculate the theoretical balance assuming the configured 5% daily target is achieved on every configured trading day.
+
+Actual Growth Line
+
+Use actual submitted daily results.
+
+For future dates where no actual result exists, DO NOT fake actual performance.
+
+The Actual Growth line must stop at the latest completed date.
+
+The Target Growth line can continue until:
+
+31 December 2026
+
+This allows the user to visually compare:
+
+“Where I planned to be”
+
+versus
+
+“Where I actually am”
+
+⸻
+
+36. GRAPH TIME FILTERS
+
+Above the chart provide:
+
+7D
+30D
+Monthly
+Until Dec 2026
+
+Default:
+
+30D
+
+If “Until Dec 2026” is selected, display the complete projection from:
+
+19 September 2026
+
+to:
+
+31 December 2026
+
+⸻
+
+37. GRAPH INTERACTION
+
+When the user taps a point on the graph show:
+
+Date
+
+Target Balance
+
+Actual Balance
+
+Difference
+
+Performance %
+
+Example:
+
+20 Sep 2026
+
+Target:
+SAR 5,512.50
+
+Actual:
+SAR 5,512.50
+
+Difference:
+SAR 0
+
+Performance:
+100%
+
+For future dates show:
+
+Projected Target
+
+Do NOT show Actual Balance if no actual result exists.
+
+⸻
+
+38. FUTURE PROJECTION
+
+Add a section:
+
+“Your Growth Projection”
+
+Calculate the mathematical target projection from the current balance through:
+
+31 December 2026
+
+Use the configured:
+
+Daily Target Percentage
+Trading Days
+
+IMPORTANT:
+
+Do not assume every calendar day is a trading day if the user has configured specific trading days.
+
+Only compound the target on configured active trading days.
+
+Display:
+
+Current Capital
+
+Current Date
+
+Daily Target %
+
+Projected December 31 Target
+
+Remaining Trading Days
+
+Required Target Days
+
+⸻
+
+39. IMPORTANT PROJECTION DISCLAIMER
+
+The projection is mathematical only.
+
+Display underneath:
+
+“Projection assumes the selected daily target is achieved on every active tracking day. It is not a prediction or guaranteed investment return.”
+
+Never describe the December projected amount as guaranteed income.
+
+⸻
+
+40. MONTHLY TARGET OVERVIEW
+
+Add a new section:
+
+MONTHLY PLAN
+
+Show separate monthly cards for:
+
+September 2026
+October 2026
+November 2026
+December 2026
+
+Each month should contain:
+
+Starting Balance
+Target Closing Balance
+Target Profit
+Trading/Tracking Days
+Completed Days
+Remaining Days
+Targets Achieved
+Targets Missed
+Actual Profit
+Achievement Rate
+Month Progress %
+
+⸻
+
+41. SEPTEMBER 2026 CARD
+
+Example structure:
+
+SEPTEMBER 2026
+
+Start Date:
+19 Sep
+
+Starting Capital:
+SAR 5,000
+
+Completed:
+2 Days
+
+Achieved:
+2
+
+Missed:
+0
+
+Current Capital:
+SAR 5,512.50
+
+Actual Profit:
++SAR 512.50
+
+Achievement Rate:
+100%
+
+Remaining Tracking Days:
+Automatically calculate
+
+Projected Month-End Balance:
+Automatically calculate
+
+Progress:
+
+[ Progress Bar ]
+
+The progress bar should represent:
+
+Completed tracking days / Total tracking days for that month
+
+Do NOT simply use calendar days.
+
+⸻
+
+42. FUTURE MONTH CARDS
+
+Example:
+
+OCTOBER 2026
+
+Status:
+Upcoming
+
+Starting Target Balance:
+Automatically calculated
+
+Monthly Target Profit:
+Automatically calculated
+
+Target Closing Balance:
+Automatically calculated
+
+Tracking Days:
+Automatically calculated
+
+Progress:
+0%
+
+Then:
+
+NOVEMBER 2026
+
+and:
+
+DECEMBER 2026
+
+Do the same dynamically.
+
+Never hardcode monthly financial values because changing the daily percentage or trading-day configuration must update all future projections.
+
+⸻
+
+43. MONTHLY DETAIL SCREEN
+
+When user taps a month, open:
+
+Monthly Performance
+
+Example:
+
+SEPTEMBER 2026
+
+Show:
+
+Starting Capital
+
+Current / Closing Capital
+
+Target Profit
+
+Actual Profit
+
+Target Growth %
+
+Actual Growth %
+
+Days Completed
+
+Days Remaining
+
+Targets Achieved
+
+Partial Targets
+
+Loss Days
+
+Skipped Days
+
+Achievement Rate
+
+Then show the daily records for that month.
+
+⸻
+
+44. MONTHLY DAILY LIST
+
+Example:
+
+19 Sep     +250.00      ✓ Achieved
+20 Sep     +262.50      ✓ Achieved
+21 Sep     +275.63      Pending
+22 Sep     +289.41      Upcoming
+
+For future dates, values represent targets only.
+
+Clearly distinguish:
+
+Actual
+Target
+Projected
+
+Never present projected values as already earned.
+
+⸻
+
+45. MONTHLY COMPARISON
+
+Add a simple Monthly Performance section.
+
+Allow comparison between:
+
+September
+October
+November
+December
+
+Metrics:
+
+Target Profit
+Actual Profit
+Achievement Rate
+Capital Growth
+
+For months that have not occurred yet, show:
+
+Projected
+
+instead of:
+
+Actual
+
+⸻
+
+46. DASHBOARD UPDATED STRUCTURE
+
+The Dashboard should now follow this information hierarchy:
+
+CURRENT CAPITAL
+
+SAR 5,512.50
+
+Total Profit
++SAR 512.50
+
+Growth
++10.25%
+
+↓
+
+NEXT TARGET
+
+5%
+
++SAR 275.63
+
+Target Balance:
+SAR 5,788.13
+
+[ ACHIEVED ]
+
+[ ENTER ACTUAL RESULT ]
+
+↓
+
+PERFORMANCE OVERVIEW
+
+Target Growth vs Actual Growth
+
+[7D] [30D] [Monthly] [Until Dec]
+
+↓
+
+DECEMBER PROJECTION
+
+Current:
+SAR 5,512.50
+
+Projected Target:
+Dynamically calculated
+
+Remaining Target Days:
+Dynamically calculated
+
+↓
+
+MONTHLY PLAN
+
+September
+October
+November
+December
+
+↓
+
+RECENT ACTIVITY
+
+⸻
+
+47. TARGET VS ACTUAL LOGIC
+
+The application must maintain TWO separate datasets:
+
+TARGET PERFORMANCE
+
+and
+
+ACTUAL PERFORMANCE
+
+Target Performance:
+
+Mathematical projection assuming the configured target is achieved.
+
+Actual Performance:
+
+Real results entered by the user.
+
+Never overwrite Target Performance with Actual Performance.
+
+This separation is critical for analytics.
+
+⸻
+
+48. PERFORMANCE DIFFERENCE
+
+Calculate:
+
+Performance Difference =
+Actual Capital - Target Capital
+
+Also calculate:
+
+Performance Ratio =
+Actual Capital / Target Capital × 100
+
+Example:
+
+Target Capital:
+SAR 6,000
+
+Actual Capital:
+SAR 5,700
+
+Difference:
+-SAR 300
+
+Performance Ratio:
+95%
+
+If actual capital is above target:
+
+Target:
+SAR 6,000
+
+Actual:
+SAR 6,300
+
+Difference:
++SAR 300
+
+Performance Ratio:
+105%
+
+⸻
+
+49. ON-TRACK STATUS
+
+Use neutral performance labels:
+
+ON TARGET
+
+ABOVE TARGET
+
+BELOW TARGET
+
+Do not use emotional or judgmental wording.
+
+Example:
+
+Actual:
+SAR 5,512.50
+
+Target:
+SAR 5,512.50
+
+Status:
+ON TARGET
+
+⸻
+
+50. DYNAMIC RECALCULATION
+
+This requirement is CRITICAL.
+
+If the user changes:
+
+Daily Target %
+Trading Days
+Actual historical result
+Starting Capital
+Start Date
+
+The system must automatically recalculate:
+
+Future daily targets
+Future projected balances
+Graph
+Monthly projections
+December projection
+Achievement statistics
+
+Never leave stale projection data.
+
+⸻
+
+51. DATE RULES
+
+Official tracking start:
+
+19 September 2026
+
+Projection end:
+
+31 December 2026
+
+Do not generate performance records before:
+
+19 September 2026
+
+Future dates should be classified as:
+
+Projected
+
+They must NOT be counted as completed transactions.
+
+⸻
+
+52. GRAPH VISUAL DESIGN
+
+Graph should feel like a premium fintech analytics dashboard.
+
+Keep it simple and readable.
+
+Use:
+
+Smooth line chart
+Subtle grid
+Interactive data points
+Clear Target vs Actual legend
+Currency formatting
+Responsive mobile layout
+
+The graph should immediately answer:
+
+“Where am I now?”
+
+“Where should I be according to my target?”
+
+“Am I ahead or behind my target?”
+
+“Where could my target trajectory reach by December?”
+
+⸻
+
+53. MONTHLY CARD DESIGN
+
+Monthly cards should be compact.
+
+Example:
+
+SEPTEMBER
+
+SAR 5,512.50
+Current Capital
+
+2 / XX Days Completed
+
+100%
+Target Achievement
+
+████░░░░░░
+
+XX Days Remaining
+
+Do not overload cards with information.
+
+Show additional details after tapping the month.
+
+⸻
+
+54. FINAL TEST CASE
+
+Initialize:
+
+19 Sep 2026
+Starting Capital = SAR 5,000
+Target = 5%
+
+19 SEP
+
++250.00
+Achieved
+Closing = 5,250.00
+
+20 SEP
+
++262.50
+Achieved
+Closing = 5,512.50
+
+The application must now display:
+
+Current Capital:
+SAR 5,512.50
+
+Total Profit:
+SAR 512.50
+
+Growth:
+10.25%
+
+Achieved:
+2/2
+
+Current Streak:
+2
+
+Next Target Profit:
+SAR 275.63
+
+Next Target Balance:
+SAR 5,788.13
+
+The Performance Overview graph must contain actual data for September 19 and September 20.
+
+The Actual line must end on September 20 until another result is submitted.
+
+The Target/Projection line must continue through December 31 based on configured trading days.
+
+September, October, November and December cards must calculate dynamically from the same calculation engine.
+
+All dashboard numbers, history records, monthly summaries, projections and graph data MUST reconcile with each other.
+
+There must never be different balances shown in different parts of the application.
