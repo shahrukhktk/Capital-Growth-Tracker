@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
   sectionHeader: { marginTop: 3 },
   sectionTitle: { fontSize: 19, fontWeight: '700', marginTop: 4 },
   recordsCard: { borderWidth: 1, borderRadius: 16, paddingHorizontal: 12 },
-  recordRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#EDF1ED' },
+  recordRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#E8E0D6' },
   recordDateBox: { width: 41, height: 46, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   recordDay: { fontSize: 16, fontWeight: '700' },
   recordMonth: { fontSize: 9, marginTop: 1, textTransform: 'uppercase' },
