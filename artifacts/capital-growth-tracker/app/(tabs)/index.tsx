@@ -120,6 +120,7 @@ export default function DashboardScreen() {
   const [selectedDate, setSelectedDate] = useState(snapshot.latestActualDate);
   const [showEntry, setShowEntry] = useState(false);
   const [activeEntry, setActiveEntry] = useState(snapshot.dailyEntries.find((entry) => entry.date === snapshot.nextTargetDate));
+  const [isPickingProfile, setIsPickingProfile] = useState(false);
   const chartEntries = useMemo(() => {
     const all = snapshot.dailyEntries;
     if (range === 'Until Dec') return all;
@@ -134,25 +135,51 @@ export default function DashboardScreen() {
     addRecord(activeEntry.date, roundMoney(amount));
     setShowEntry(false);
   };
-  const chooseProfileImage = async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      if (!permission.canAskAgain) {
-        Alert.alert('Photos access is off', 'Enable photo access in Settings to choose a profile picture.', [
-          { text: 'Not now', style: 'cancel' },
-          { text: 'Open Settings', onPress: () => Linking.openSettings() },
-        ]);
-      } else {
-        Alert.alert('Photos access needed', 'Allow photo access to set a profile picture.');
+  const openProfilePicker = async () => {
+    if (isPickingProfile) return;
+    setIsPickingProfile(true);
+    try {
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        if (!permission.canAskAgain) {
+          Alert.alert('Photos access is off', 'Enable photo access in Settings to choose a profile picture.', [
+            { text: 'Not now', style: 'cancel' },
+            { text: 'Open Settings', onPress: () => Linking.openSettings().catch(() => undefined) },
+          ]);
+        } else {
+          Alert.alert('Photos access needed', 'Allow photo access to set a profile picture.');
+        }
+        return;
       }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: 'images',
+        allowsEditing: true,
+        aspect: [1, 1],
+        shape: 'oval',
+        quality: 0.85,
+        exif: false,
+      });
+      if (!result.canceled && result.assets[0]?.uri) {
+        setProfileUri(result.assets[0].uri);
+      }
+    } catch {
+      Alert.alert('Could not update picture', 'Please try selecting the photo again.');
+    } finally {
+      setIsPickingProfile(false);
+    }
+  };
+  const chooseProfileImage = () => {
+    if (!profileUri) {
+      void openProfilePicker();
       return;
     }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
-    if (!result.canceled && result.assets[0]?.uri) setProfileUri(result.assets[0].uri);
+
+    Alert.alert('Profile picture', 'Choose a new photo and adjust the crop, or remove the current picture.', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Remove picture', style: 'destructive', onPress: () => setProfileUri(null) },
+      { text: 'Change picture', onPress: () => void openProfilePicker() },
+    ]);
   };
 
   if (!hydrated) return <View style={[styles.loading, { backgroundColor: colors.background }]}><ActivityIndicator color={colors.primary} /></View>;
@@ -166,7 +193,9 @@ export default function DashboardScreen() {
             accessibilityLabel="Choose profile picture"
             style={({ pressed }) => [styles.avatarButton, { backgroundColor: colors.secondary, borderColor: colors.border, opacity: pressed ? 0.72 : 1 }]}
           >
-            {profileUri ? (
+            {isPickingProfile ? (
+              <ActivityIndicator color={colors.accentForeground} />
+            ) : profileUri ? (
               <Image source={{ uri: profileUri }} style={styles.avatarImage} />
             ) : (
               <Feather name="user" size={19} color={colors.accentForeground} />
