@@ -256,7 +256,7 @@ export function calculateTracker(
 
   const monthly: MonthlySummary[] = [];
   let monthCursor = `${settings.startDate.slice(0, 7)}-01`;
-  while (monthCursor <= settings.projectionEndDate.slice(0, 7)) {
+  while (monthCursor.slice(0, 7) <= settings.projectionEndDate.slice(0, 7)) {
     const key = monthCursor.slice(0, 7);
     const monthDates = dailyEntries.filter((entry) => entry.date.startsWith(key));
     const firstEntry = monthDates[0];
