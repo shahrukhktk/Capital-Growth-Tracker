@@ -3,7 +3,10 @@ import { router } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Dimensions,
+  Image,
+  Linking,
   Modal,
   Pressable,
   ScrollView,
@@ -12,6 +15,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import Svg, { Circle, Line, Path } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/useColors';
@@ -111,7 +115,7 @@ function ActualEntryModal({ visible, onClose, date, targetProfit, onSave }: { vi
 export default function DashboardScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { snapshot, hydrated, addRecord } = useTracker();
+  const { snapshot, hydrated, addRecord, profileUri, setProfileUri } = useTracker();
   const [range, setRange] = useState<Range>('30D');
   const [selectedDate, setSelectedDate] = useState(snapshot.latestActualDate);
   const [showEntry, setShowEntry] = useState(false);
@@ -130,12 +134,53 @@ export default function DashboardScreen() {
     addRecord(activeEntry.date, roundMoney(amount));
     setShowEntry(false);
   };
+  const chooseProfileImage = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      if (!permission.canAskAgain) {
+        Alert.alert('Photos access is off', 'Enable photo access in Settings to choose a profile picture.', [
+          { text: 'Not now', style: 'cancel' },
+          { text: 'Open Settings', onPress: () => Linking.openSettings() },
+        ]);
+      } else {
+        Alert.alert('Photos access needed', 'Allow photo access to set a profile picture.');
+      }
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets[0]?.uri) setProfileUri(result.assets[0].uri);
+  };
 
   if (!hydrated) return <View style={[styles.loading, { backgroundColor: colors.background }]}><ActivityIndicator color={colors.primary} /></View>;
 
   return (
     <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={[styles.container, { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 96 }]} showsVerticalScrollIndicator={false}>
-      <View style={styles.topBar}><View><Text style={[styles.eyebrow, { color: colors.accentForeground }]}>CAPITAL GROWTH TRACKER</Text><Text style={[styles.greeting, { color: colors.foreground }]}>Your trajectory</Text></View><Pressable onPress={() => router.push('/settings')} style={({ pressed }) => [styles.iconButton, { backgroundColor: colors.card, borderColor: colors.border, opacity: pressed ? 0.7 : 1 }]}><Feather name="sliders" size={18} color={colors.foreground} /></Pressable></View>
+      <View style={styles.topBar}>
+        <View style={styles.brandCluster}>
+          <Pressable
+            onPress={chooseProfileImage}
+            accessibilityLabel="Choose profile picture"
+            style={({ pressed }) => [styles.avatarButton, { backgroundColor: colors.secondary, borderColor: colors.border, opacity: pressed ? 0.72 : 1 }]}
+          >
+            {profileUri ? (
+              <Image source={{ uri: profileUri }} style={styles.avatarImage} />
+            ) : (
+              <Feather name="user" size={19} color={colors.accentForeground} />
+            )}
+            <View style={[styles.avatarBadge, { backgroundColor: colors.primary, borderColor: colors.background }]}>
+              <Feather name="plus" size={9} color={colors.primaryForeground} />
+            </View>
+          </Pressable>
+          <View>
+            <Text style={[styles.appName, { color: colors.foreground }]}>InvesGrow</Text>
+            <Text style={[styles.greeting, { color: colors.mutedForeground }]}>Your trajectory</Text>
+          </View>
+        </View>
+      </View>
       <View style={[styles.heroCard, { backgroundColor: colors.navy }]}>
         <View style={styles.heroTopLine}><Text style={styles.heroLabel}>CURRENT CAPITAL</Text><View style={styles.livePill}><View style={styles.liveDot} /><Text style={styles.liveText}>TRACKING</Text></View></View>
         <Text style={styles.heroNumber}>{formatMoney(snapshot.currentCapital)}</Text>
@@ -171,10 +216,14 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   container: { paddingHorizontal: 20, gap: 16 },
-  topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 46 },
+  brandCluster: { flexDirection: 'row', alignItems: 'center', gap: 11 },
+  avatarButton: { width: 43, height: 43, borderRadius: 22, borderWidth: 1, alignItems: 'center', justifyContent: 'center', position: 'relative' },
+  avatarImage: { width: 41, height: 41, borderRadius: 21 },
+  avatarBadge: { position: 'absolute', right: -2, bottom: -1, width: 16, height: 16, borderRadius: 8, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  appName: { fontSize: 17, fontWeight: '700', letterSpacing: -0.2, marginBottom: 3 },
   eyebrow: { fontSize: 10, letterSpacing: 1.6, fontWeight: '700' },
-  greeting: { fontSize: 26, fontWeight: '700', marginTop: 5, letterSpacing: -0.7 },
-  iconButton: { width: 42, height: 42, borderRadius: 21, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  greeting: { fontSize: 11, fontWeight: '500', letterSpacing: 0.1 },
   heroCard: { borderRadius: 22, padding: 20, gap: 18, shadowColor: '#0D2420', shadowOpacity: 0.18, shadowRadius: 16, shadowOffset: { width: 0, height: 9 }, elevation: 4 },
   heroTopLine: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   heroLabel: { color: '#A9C1B9', fontSize: 10, letterSpacing: 1.4, fontWeight: '700' },

@@ -12,6 +12,8 @@ import {
 type TrackerContextValue = {
   snapshot: TrackerSnapshot;
   hydrated: boolean;
+  profileUri: string | null;
+  setProfileUri: (uri: string | null) => void;
   updateSettings: (changes: Partial<TrackerSettings>) => void;
   addRecord: (date: string, actualProfit: number) => void;
   resetTracker: () => void;
@@ -23,6 +25,7 @@ const TrackerContext = createContext<TrackerContextValue | null>(null);
 export function TrackerProvider({ children }: { children: React.ReactNode }) {
   const [settings, setSettings] = useState<TrackerSettings>(DEFAULT_SETTINGS);
   const [records, setRecords] = useState<ActualRecord[]>(DEFAULT_RECORDS);
+  const [profileUri, setProfileUri] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -32,9 +35,11 @@ export function TrackerProvider({ children }: { children: React.ReactNode }) {
           const parsed = JSON.parse(stored) as {
             settings?: TrackerSettings;
             records?: ActualRecord[];
+            profileUri?: string | null;
           };
           setSettings({ ...DEFAULT_SETTINGS, ...(parsed.settings ?? {}) });
           setRecords(parsed.records ?? DEFAULT_RECORDS);
+          setProfileUri(parsed.profileUri ?? null);
         }
       })
       .catch(() => undefined)
@@ -43,8 +48,8 @@ export function TrackerProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!hydrated) return;
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({ settings, records })).catch(() => undefined);
-  }, [hydrated, records, settings]);
+    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({ settings, records, profileUri })).catch(() => undefined);
+  }, [hydrated, profileUri, records, settings]);
 
   const snapshot = useMemo(() => calculateTracker(settings, records), [records, settings]);
 
@@ -52,6 +57,8 @@ export function TrackerProvider({ children }: { children: React.ReactNode }) {
     () => ({
       snapshot,
       hydrated,
+      profileUri,
+      setProfileUri,
       updateSettings: (changes) => setSettings((current) => ({ ...current, ...changes })),
       addRecord: (date, actualProfit) => {
         setRecords((current) => {
@@ -71,7 +78,7 @@ export function TrackerProvider({ children }: { children: React.ReactNode }) {
         setRecords(DEFAULT_RECORDS);
       },
     }),
-    [hydrated, snapshot],
+    [hydrated, profileUri, snapshot],
   );
 
   return <TrackerContext.Provider value={value}>{children}</TrackerContext.Provider>;
